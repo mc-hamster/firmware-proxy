@@ -47,18 +47,22 @@ router.get("/:releaseType/:id/:variant", async (context) => {
   try {
     Deno.readFileSync(`/tmp/${id}/firmware-${variant}-${id}.bin`);
   } catch (_) {
-    let zipData = new Uint8Array();
+    try {
+      Deno.removeSync(`/tmp/${id}.zip`);
+    } finally {
+      let zipData = new Uint8Array();
 
-    const response = await fetch(buildUrl(id), {
-      headers: {
-        Accept: "application/vnd.github.3.raw",
-      },
-    });
-    zipData = new Uint8Array(await response.arrayBuffer());
+      const response = await fetch(buildUrl(id), {
+        headers: {
+          Accept: "application/vnd.github.3.raw",
+        },
+      });
+      zipData = new Uint8Array(await response.arrayBuffer());
 
-    const file = await Deno.create(`/tmp/${id}.zip`);
-    await writeAll(file, zipData);
-    await decompress(`/tmp/${id}.zip`, `/tmp/${id}`);
+      const file = await Deno.create(`/tmp/${id}.zip`);
+      await writeAll(file, zipData);
+      await decompress(`/tmp/${id}.zip`, `/tmp/${id}`);
+    }
   }
 
   context.response.type = "application/octet-stream";
