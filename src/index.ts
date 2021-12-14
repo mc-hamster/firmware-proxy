@@ -45,10 +45,10 @@ router.get("/:releaseType/:id/:variant", async (context) => {
   console.log(`Requested: ${releaseType} ${id} ${variant}`);
 
   try {
-    Deno.readFileSync(`/tmp/${id}/firmware-${variant}-${id}.bin`);
+    Deno.readFileSync(`./tmp/${id}/firmware-${variant}-${id}.bin`);
   } catch (_) {
     try {
-      Deno.removeSync(`/tmp/${id}.zip`);
+      Deno.removeSync(`./tmp/${id}.zip`);
     } finally {
       let zipData = new Uint8Array();
 
@@ -59,9 +59,9 @@ router.get("/:releaseType/:id/:variant", async (context) => {
       });
       zipData = new Uint8Array(await response.arrayBuffer());
 
-      const file = await Deno.create(`/tmp/${id}.zip`);
+      const file = await Deno.create(`./tmp/${id}.zip`);
       await writeAll(file, zipData);
-      await decompress(`/tmp/${id}.zip`, `/tmp/${id}`);
+      await decompress(`./tmp/${id}.zip`, `./tmp/${id}`);
     }
   }
 
@@ -71,7 +71,7 @@ router.get("/:releaseType/:id/:variant", async (context) => {
     `attachment; filename="firmware-${variant}-${id}.bin"`
   );
   context.response.body = await Deno.open(
-    `/tmp/${id}/firmware-${variant}-${id}.bin`
+    `./tmp/${id}/firmware-${variant}-${id}.bin`
   );
 });
 
