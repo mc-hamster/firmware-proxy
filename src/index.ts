@@ -36,7 +36,13 @@ const router = new Router();
 
 router.get("/:releaseType/:id/:variant", async (context) => {
   const { releaseType, id, variant } = context.params;
-  if (!sanatizeInput(releaseType, id, variant)) return;
+  if (!sanatizeInput(releaseType, id, variant)) {
+    context.response.status = 400;
+    context.response.body = "Invalid input";
+    return;
+  }
+
+  console.log(`Requested: ${releaseType} ${id} ${variant}`);
 
   try {
     Deno.readDirSync(`/tmp/${id}/`);
