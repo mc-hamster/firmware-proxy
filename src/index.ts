@@ -45,7 +45,7 @@ router.get("/:releaseType/:id/:variant", async (context) => {
   console.log(`Requested: ${releaseType} ${id} ${variant}`);
 
   try {
-    Deno.readDirSync(`/tmp/${id}/`);
+    Deno.readFileSync(`/tmp/${id}/firmware-${variant}-${id}.bin`);
   } catch (_) {
     let zipData = new Uint8Array();
 
