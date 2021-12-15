@@ -1,3 +1,4 @@
+import { ensureDirSync } from 'https:/deno.land/std@0.117.0/fs/mod.ts';
 import { writeAll } from 'https:/deno.land/std@0.117.0/streams/conversion.ts';
 import { Application, Router } from 'https:/deno.land/x/oak@v10.0.0/mod.ts';
 import { decompress } from 'https:/deno.land/x/zip@v1.2.2/mod.ts';
@@ -34,6 +35,8 @@ const sanatizeInput = (releaseType: string, id: string, variant: string) => {
 
 const router = new Router();
 
+ensureDirSync("./tmp");
+
 router.get("/:releaseType/:id/:variant", async (context) => {
   const { releaseType, id, variant } = context.params;
   if (!sanatizeInput(releaseType, id, variant)) {
@@ -44,25 +47,34 @@ router.get("/:releaseType/:id/:variant", async (context) => {
 
   console.log(`Requested: ${releaseType} ${id} ${variant}`);
 
+  console.log("\n\nList Files:");
+
+  for await (const dirEntry of Deno.readDir("./tmp")) {
+    console.log(dirEntry);
+  }
+  console.log("______________________________");
+  for await (const dirEntry of Deno.readDir(`./tmp/${id}/`)) {
+    console.log(dirEntry);
+  }
+
+  console.log("\n\nEnd List Files:");
+
   try {
     Deno.readFileSync(`./tmp/${id}/firmware-${variant}-${id}.bin`);
   } catch (_) {
-    try {
-      Deno.removeSync(`./tmp/${id}.zip`);
-    } finally {
-      let zipData = new Uint8Array();
+    let zipData = new Uint8Array();
 
-      const response = await fetch(buildUrl(id), {
-        headers: {
-          Accept: "application/vnd.github.3.raw",
-        },
-      });
-      zipData = new Uint8Array(await response.arrayBuffer());
+    const response = await fetch(buildUrl(id), {
+      headers: {
+        Accept: "application/vnd.github.3.raw",
+      },
+    });
+    zipData = new Uint8Array(await response.arrayBuffer());
 
-      const file = await Deno.create(`./tmp/${id}.zip`);
-      await writeAll(file, zipData);
-      await decompress(`./tmp/${id}.zip`, `./tmp/${id}`);
-    }
+    const file = await Deno.create(`./tmp/${id}.zip`);
+    await writeAll(file, zipData);
+    await decompress(`./tmp/${id}.zip`, `./tmp/${id}`);
+    await Deno.remove(`./tmp/${id}.zip`);
   }
 
   context.response.type = "application/octet-stream";
