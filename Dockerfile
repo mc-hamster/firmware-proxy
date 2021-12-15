@@ -2,8 +2,6 @@ FROM denoland/deno:1.16.4
 
 WORKDIR /app
 
-USER deno:deno
-
 # These steps will be re-run upon each file change in your working directory:
 ADD . .
 
