@@ -35,7 +35,7 @@ const sanatizeInput = (releaseType: string, id: string, variant: string) => {
 
 const router = new Router();
 
-ensureDirSync("./tmp");
+ensureDirSync("./temp");
 
 router.get("/:releaseType/:id/:variant", async (context) => {
   const { releaseType, id, variant } = context.params;
@@ -49,18 +49,18 @@ router.get("/:releaseType/:id/:variant", async (context) => {
 
   console.log("\n\nList Files:");
 
-  for await (const dirEntry of Deno.readDir("./tmp")) {
+  for await (const dirEntry of Deno.readDir("./temp")) {
     console.log(dirEntry);
   }
   console.log("______________________________");
-  for await (const dirEntry of Deno.readDir(`./tmp/${id}/`)) {
+  for await (const dirEntry of Deno.readDir(`./temp/${id}/`)) {
     console.log(dirEntry);
   }
 
   console.log("\n\nEnd List Files:");
 
   try {
-    Deno.readFileSync(`./tmp/${id}/firmware-${variant}-${id}.bin`);
+    Deno.readFileSync(`./temp/${id}/firmware-${variant}-${id}.bin`);
   } catch (_) {
     let zipData = new Uint8Array();
 
@@ -71,10 +71,10 @@ router.get("/:releaseType/:id/:variant", async (context) => {
     });
     zipData = new Uint8Array(await response.arrayBuffer());
 
-    const file = await Deno.create(`./tmp/${id}.zip`);
+    const file = await Deno.create(`./temp/${id}.zip`);
     await writeAll(file, zipData);
-    await decompress(`./tmp/${id}.zip`, `./tmp/${id}`);
-    await Deno.remove(`./tmp/${id}.zip`);
+    await decompress(`./temp/${id}.zip`, `./temp/${id}`);
+    await Deno.remove(`./temp/${id}.zip`);
   }
 
   context.response.type = "application/octet-stream";
@@ -83,7 +83,7 @@ router.get("/:releaseType/:id/:variant", async (context) => {
     `attachment; filename="firmware-${variant}-${id}.bin"`
   );
   context.response.body = await Deno.open(
-    `./tmp/${id}/firmware-${variant}-${id}.bin`
+    `./temp/${id}/firmware-${variant}-${id}.bin`
   );
 });
 
